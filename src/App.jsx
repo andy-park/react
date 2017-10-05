@@ -7,48 +7,63 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: {name: "Bob"},
-      messages: [
-        {
-          id: 101,
-          username: "Bob",
-          content: "Has anyone seen my marbles?",
-        },
-        {
-          id: 102,
-          username: "Anonymous",
-          content: "No, I think you lost them. You lost your marbles Bob. You lost them for good.",
-        }
-      ]
-    }
-    this.addMessage = this.addMessage.bind(this);
+      currentUser: { 'name' : 'Anonymous'},
+      messages: []
+    };
   }
 
   componentDidMount() {
-    const ws = new WebSocket("ws://localhost:3001");
+    this.ws = new WebSocket(`ws://${location.hostname}:3001`);
 
-    setTimeout(() => {
-      console.log("Simulating incoming message");
-      const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
-      const messages = this.state.messages.concat(newMessage)
-      this.setState({ messages: messages })
-    }, 3000);
-  };
+    this.ws.addEventListener('message', message => {
+      const data = JSON.parse(message.data);
+      switch(data.type) {
+        case 'message':
+          this.setState({
+            messages: this.state.messages.concat(data)
+          });
+          break;
+        case 'nameChange':
+          console.log('Got a username change from %s to %s', data.oldName, data.newName)
+          break;
+        default:
+          console.info('Unknown data %o', data);
+      }
+    });
+  }
 
-  addMessage(messageBody) {
-    const newMessage = {id: this.state.messages.id, username: this.state.messages.username, content: messageBody};
-    const messages = this.state.messages.concat(newMessage);
-    this.setState({ messages: messages });
+  sendData(data) {
+    this.ws.send(JSON.stringify(data));
+  }
 
-    ws
-  };
+  sendMessage = (newMsg) => {
+    this.sendData({
+      type: 'message',
+      username: this.state.currentUser.name,
+      content: newMsg
+    });
+  }
+
+  editName = (newName) => {
+    this.sendData({
+      type: 'nameChange',
+      oldName: this.state.currentUser.name,
+      newName,
+    });
+
+    this.setState({ currentUser: { name: newName } });
+  }
 
   render() {
     return (
       <div>
         <NavBar />
         <MessageList messages = { this.state.messages }/>
-        <ChatBar currentUser = { this.state.currentUser } addMessage= { this.addMessage }/>
+        <ChatBar
+          currentUser = { this.state.currentUser }
+          editName = { this.editName }
+          sendMessage= { this.sendMessage }
+          />
       </div>
     );
   }
