@@ -5,7 +5,6 @@ class ChatBar extends Component {
     super();
     this.onKeyPress = this.onKeyPress.bind(this);
     this.onNameEdit = this.onNameEdit.bind(this);
-    this.postNotification = this.postNotification.bind(this);
   }
 
   onKeyPress(event) {
@@ -21,7 +20,6 @@ class ChatBar extends Component {
       event.preventDefault();
       this.props.editName(event.target.value);
       event.target.value = '';
-      this.send.postNotification
     }
   }
 

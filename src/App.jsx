@@ -18,13 +18,13 @@ class App extends Component {
     this.ws.addEventListener('message', message => {
       const data = JSON.parse(message.data);
       switch(data.type) {
-        case 'message':
+        case 'postMessage':
           this.setState({
             messages: this.state.messages.concat(data)
           });
           break;
         case 'nameChange':
-          console.log('Got a username change from %s to %s', data.oldName, data.newName)
+          console.log(data.oldName + ' changed their name to ' + data.newName)
           break;
         default:
           console.info('Unknown data %o', data);
@@ -38,7 +38,7 @@ class App extends Component {
 
   sendMessage = (newMsg) => {
     this.sendData({
-      type: 'message',
+      type: 'postMessage',
       username: this.state.currentUser.name,
       content: newMsg
     });
@@ -54,6 +54,12 @@ class App extends Component {
     this.setState({ currentUser: { name: newName } });
   }
 
+  postNotification = () => {
+    this.sendData({
+      type: 'postNotification'
+    })
+  }
+
   render() {
     return (
       <div>
@@ -62,7 +68,8 @@ class App extends Component {
         <ChatBar
           currentUser = { this.state.currentUser }
           editName = { this.editName }
-          sendMessage= { this.sendMessage }
+          sendMessage = { this.sendMessage }
+          postNotification = { this.postNotification }
           />
       </div>
     );
