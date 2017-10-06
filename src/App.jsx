@@ -7,7 +7,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: { 'name' : 'Anonymous'},
+      userCount: 0,
+      currentUser: { 'name' : 'Andy'},
       messages: []
     };
   }
@@ -17,24 +18,23 @@ class App extends Component {
 
     this.ws.addEventListener('message', message => {
       const data = JSON.parse(message.data);
+      console.log(data);
       switch(data.type) {
         case 'message':
+        case 'systemMessage':
           this.setState({
             messages: this.state.messages.concat(data)
           });
           break;
-        case 'nameChange':
-          message = {
-            type: 'nameChange',
-            content: data.oldName + ' changed their name to ' + data.newName
-          }
-          this.setState({
-            messages: this.state.messages.concat(message)
-          })
-          console.log(data.oldName + ' changed their name to ' + data.newName)
+          break;
+        case 'count':
+            this.setState({
+              userCount: data.users
+            })
           break;
         default:
           console.info('Unknown event type', data.type);
+          console.log(data);
       }
     });
   }
@@ -63,12 +63,12 @@ class App extends Component {
   render() {
     return (
       <div>
-        <NavBar />
+        <NavBar userCount={ this.state.userCount } />
         <MessageList
           messages = { this.state.messages }
           />
         <ChatBar
-          currentUser = { this.state.currentUser }
+          currentUser = { this.state.currentUser.name }
           editName = { this.editName }
           sendMessage = { this.sendMessage }
           />
